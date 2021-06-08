@@ -1,0 +1,14 @@
+# this environment is purely to have tox installed which can then be used
+# to run the tests in a repeatable way. Other dependencies should not be added here,
+# see the tox.ini file for testing related dependencies.
+name: argortqcpy-tox
+dependencies:
+  # pin python version to project requirement
+  - python=3.6
+  # pin virtualenv version to avoid issues with tox see: https://github.com/pypa/virtualenv/issues/1986
+  - virtualenv=20.0.33
+  - pip
+  - pip:
+    - setuptools
+    - tox
+    - twine

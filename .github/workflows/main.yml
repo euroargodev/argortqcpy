@@ -25,14 +25,6 @@ jobs:
       - name: Test package
         # Run tox using the version of Python in `PATH`
         run: tox -e py
-      - name: Upload test results
-        uses: actions/upload-artifact@v2
-        with:
-          name: test-results-python-${{ matrix.python-version }}
-          path: junit.xml
-          if-no-files-found: error
-        # Use always() to always run this step to publish test results when there are test failures
-        if: ${{ always() }}
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         with:

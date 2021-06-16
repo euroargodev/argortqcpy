@@ -79,7 +79,10 @@ class CheckOutput:
             self._output[property_name][:] = ArgoQcFlag.NO_QC
 
     def set_output_flag_for_property(
-        self, property_name: str, flag: ArgoQcFlag, where: Optional[np.ndarray] = None
+        self,
+        property_name: str,
+        flag: ArgoQcFlag,
+        where: Optional[np.ndarray] = None,
     ) -> None:
         """Set a flag for a given property (possibly only on some values) accounting for flag precedence."""
         self.ensure_output_for_property(property_name)
@@ -87,6 +90,10 @@ class CheckOutput:
         flags = self._output[property_name][where]
         for overridable_flag in FLAG_PRECEDENCE[flag]:
             flags[flags == overridable_flag] = flag
+
+    def get_output_flags_for_property(self, property_name: str):
+        """Return the array of flags for the given property."""
+        return self._output[property_name]
 
 
 class CheckBase(ABC):

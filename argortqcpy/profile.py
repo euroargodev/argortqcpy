@@ -9,20 +9,21 @@ from netCDF4 import Dataset
 class ProfileBase(ABC):
     """Class defining the required properties for a profile."""
 
-    @property
-    @abstractmethod
-    def pressure(self) -> ma.MaskedArray:
-        """Return the pressure array for the profile."""
+    valid_properties = {
+        "PRES",
+        "TEMP",
+        "PSAL",
+    }
 
-    @property
-    @abstractmethod
-    def temperature(self) -> ma.MaskedArray:
-        """Return the temperature array for the profile."""
+    @classmethod
+    def raise_if_not_valid_property(cls, property_name):
+        """Check that a given property name is valid."""
+        if property_name not in cls.valid_properties:
+            raise KeyError(f"{property_name}: not a valid property for Profile.")
 
-    @property
     @abstractmethod
-    def salinity(self) -> ma.MaskedArray:
-        """Return the salinity array for the profile."""
+    def get_property_data(self, property_name) -> ma.MaskedArray:
+        """Return the array of property data from the profile."""
 
 
 class Profile(ProfileBase):
@@ -32,17 +33,7 @@ class Profile(ProfileBase):
         """Initialise a profile based on a dataset."""
         self._dataset = dataset
 
-    @property
-    def pressure(self) -> ma.MaskedArray:
-        """Return the pressure array for the profile."""
-        return self._dataset["PRES"][:]
-
-    @property
-    def temperature(self) -> ma.MaskedArray:
-        """Return the temperature array for the profile."""
-        return self._dataset["TEMP"][:]
-
-    @property
-    def salinity(self) -> ma.MaskedArray:
-        """Return the salinity array for the profile."""
-        return self._dataset["PSAL"][:]
+    def get_property_data(self, property_name) -> ma.MaskedArray:
+        """Return the array of property data from the profile."""
+        self.raise_if_not_valid_property(property_name)
+        return self._dataset[property_name][:]

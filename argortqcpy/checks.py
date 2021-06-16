@@ -75,7 +75,7 @@ class CheckOutput:
     def ensure_output_for_property(self, property_name):
         """Create an output flag array if it does not exist."""
         if property_name not in self._output:
-            self._output[property_name] = ma.empty_like(self._profile.get_property_data(property_name), dtype="|S1")
+            self._output[property_name] = ma.empty_like(self._profile.get_property_data(property_name), dtype="|S2")
             self._output[property_name][:] = ArgoQcFlag.NO_QC.value
 
     def set_output_flag_for_property(

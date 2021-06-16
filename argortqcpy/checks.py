@@ -1,7 +1,7 @@
 """Implement Argo checks."""
 
 from abc import ABC, abstractmethod
-from enum import IntEnum
+from enum import Enum
 from typing import Dict, Optional, Set
 
 from netCDF4 import Dataset
@@ -11,7 +11,7 @@ from numpy import ma
 from argortqcpy.profile import ProfileBase
 
 
-class ArgoValueFlag(IntEnum):
+class ArgoQcFlag(Enum):
     """Flags for check output."""
 
     NO_QC = "0"
@@ -27,39 +27,39 @@ class ArgoValueFlag(IntEnum):
     FILL_VALUE = ""
 
 
-FLAG_PRECEDENCE: Dict[ArgoValueFlag, Set] = {
-    ArgoValueFlag.NO_QC: set(),
-    ArgoValueFlag.GOOD: {
-        ArgoValueFlag.NO_QC,
+FLAG_PRECEDENCE: Dict[ArgoQcFlag, Set] = {
+    ArgoQcFlag.NO_QC: set(),
+    ArgoQcFlag.GOOD: {
+        ArgoQcFlag.NO_QC,
     },
-    ArgoValueFlag.PROBABLY_GOOD: {
-        ArgoValueFlag.NO_QC,
-        ArgoValueFlag.GOOD,
-        ArgoValueFlag.CHANGED,
+    ArgoQcFlag.PROBABLY_GOOD: {
+        ArgoQcFlag.NO_QC,
+        ArgoQcFlag.GOOD,
+        ArgoQcFlag.CHANGED,
     },
-    ArgoValueFlag.PROBABLY_BAD: {
-        ArgoValueFlag.NO_QC,
-        ArgoValueFlag.GOOD,
-        ArgoValueFlag.PROBABLY_GOOD,
-        ArgoValueFlag.CHANGED,
+    ArgoQcFlag.PROBABLY_BAD: {
+        ArgoQcFlag.NO_QC,
+        ArgoQcFlag.GOOD,
+        ArgoQcFlag.PROBABLY_GOOD,
+        ArgoQcFlag.CHANGED,
     },
-    ArgoValueFlag.BAD: {
-        ArgoValueFlag.NO_QC,
-        ArgoValueFlag.GOOD,
-        ArgoValueFlag.PROBABLY_GOOD,
-        ArgoValueFlag.CHANGED,
-        ArgoValueFlag.PROBABLY_BAD,
+    ArgoQcFlag.BAD: {
+        ArgoQcFlag.NO_QC,
+        ArgoQcFlag.GOOD,
+        ArgoQcFlag.PROBABLY_GOOD,
+        ArgoQcFlag.CHANGED,
+        ArgoQcFlag.PROBABLY_BAD,
     },
-    ArgoValueFlag.CHANGED: {
-        ArgoValueFlag.NO_QC,
+    ArgoQcFlag.CHANGED: {
+        ArgoQcFlag.NO_QC,
     },
-    ArgoValueFlag.ESTIMATED: {
-        ArgoValueFlag.NO_QC,
-        ArgoValueFlag.GOOD,
-        ArgoValueFlag.PROBABLY_GOOD,
+    ArgoQcFlag.ESTIMATED: {
+        ArgoQcFlag.NO_QC,
+        ArgoQcFlag.GOOD,
+        ArgoQcFlag.PROBABLY_GOOD,
     },
-    ArgoValueFlag.MISSING: {
-        ArgoValueFlag.NO_QC,
+    ArgoQcFlag.MISSING: {
+        ArgoQcFlag.NO_QC,
     },
 }
 
@@ -76,10 +76,10 @@ class CheckOutput:
         """Create an output flag array if it does not exist."""
         if property_name not in self._output:
             self._output[property_name] = ma.empty_like(self._profile.get_property_data(property_name), dtype="|S1")
-            self._output[property_name][:] = ArgoValueFlag.NO_QC
+            self._output[property_name][:] = ArgoQcFlag.NO_QC
 
     def set_output_flag_for_property(
-        self, property_name: str, flag: ArgoValueFlag, where: Optional[np.ndarray] = None
+        self, property_name: str, flag: ArgoQcFlag, where: Optional[np.ndarray] = None
     ) -> None:
         """Set a flag for a given property (possibly only on some values) accounting for flag precedence."""
         self.ensure_output_for_property(property_name)

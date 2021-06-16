@@ -35,14 +35,14 @@ class Profile(ProfileBase):
     @property
     def pressure(self) -> ma.MaskedArray:
         """Return the pressure array for the profile."""
-        return self._dataset["PRES"]
+        return self._dataset["PRES"][:]
 
     @property
     def temperature(self) -> ma.MaskedArray:
         """Return the temperature array for the profile."""
-        return self._dataset["TEMP"]
+        return self._dataset["TEMP"][:]
 
     @property
     def salinity(self) -> ma.MaskedArray:
         """Return the salinity array for the profile."""
-        return self._dataset["PSAL"]
+        return self._dataset["PSAL"][:]

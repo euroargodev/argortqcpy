@@ -26,6 +26,5 @@ def test_property_name_validation_passes(property_name):
 @pytest.mark.parametrize("property_name", ("pressure", None, "SAL"))
 def test_property_name_validation_fails(property_name):
     """Test the validation of invalid property names."""
-
     with pytest.raises(KeyError):
         Profile.raise_if_not_valid_property(property_name=property_name)

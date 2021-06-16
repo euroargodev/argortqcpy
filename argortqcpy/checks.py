@@ -14,17 +14,17 @@ from argortqcpy.profile import ProfileBase
 class ArgoQcFlag(Enum):
     """Flags for check output."""
 
-    NO_QC = "0"
-    GOOD = "1"
-    PROBABLY_GOOD = "2"
-    PROBABLY_BAD = "3"
-    BAD = "4"
-    CHANGED = "5"
+    NO_QC = b"0"
+    GOOD = b"1"
+    PROBABLY_GOOD = b"2"
+    PROBABLY_BAD = b"3"
+    BAD = b"4"
+    CHANGED = b"5"
     # "6" not used
     # "7" not used
-    ESTIMATED = "8"
-    MISSING = "9"
-    FILL_VALUE = ""
+    ESTIMATED = b"8"
+    MISSING = b"9"
+    FILL_VALUE = b""
 
 
 FLAG_PRECEDENCE: Dict[ArgoQcFlag, Set] = {
@@ -76,7 +76,7 @@ class CheckOutput:
         """Create an output flag array if it does not exist."""
         if property_name not in self._output:
             self._output[property_name] = ma.empty_like(self._profile.get_property_data(property_name), dtype="|S1")
-            self._output[property_name][:] = ArgoQcFlag.NO_QC
+            self._output[property_name][:] = ArgoQcFlag.NO_QC.value
 
     def set_output_flag_for_property(
         self,
@@ -89,7 +89,7 @@ class CheckOutput:
         where = where or slice(None)
         flags = self._output[property_name][where]
         for overridable_flag in FLAG_PRECEDENCE[flag]:
-            flags[flags == overridable_flag] = flag
+            flags[flags == overridable_flag.value] = flag.value
 
     def get_output_flags_for_property(self, property_name: str):
         """Return the array of flags for the given property."""

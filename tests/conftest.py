@@ -13,11 +13,7 @@ class FakeProfile(ProfileBase):
 
     def __init__(self):
         """Initialise some empty data for access."""
-        self._data = {
-            "PRES": ma.MaskedArray(),
-            "TEMP": ma.MaskedArray(),
-            "PSAL": ma.MaskedArray(),
-        }
+        self._data = {property_name: ma.MaskedArray() for property_name in self.valid_properties}
 
     def get_property_data(self, property_name) -> ma.MaskedArray:
         """Retrieve the data from the internal dict."""

@@ -29,3 +29,6 @@ junit.xml
 
 # Environments
 venv/
+
+# netCDF files
+*.nc

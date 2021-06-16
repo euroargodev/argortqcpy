@@ -35,9 +35,11 @@ def fixture_empty_dataset(tmp_path):
 
     dataset = Dataset(filepath, mode="w")
 
-    dataset.createVariable("PRES", "f")
-    dataset.createVariable("TEMP", "f")
-    dataset.createVariable("PSAL", "f")
+    dataset.createDimension("TIME", 10)
+
+    dataset.createVariable("PRES", "f", dimensions="TIME")
+    dataset.createVariable("TEMP", "f", dimensions="TIME")
+    dataset.createVariable("PSAL", "f", dimensions="TIME")
 
     return dataset
 

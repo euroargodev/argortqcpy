@@ -5,6 +5,8 @@ from typing import Optional
 
 from netCDF4 import Dataset
 
+from argortqcpy.profile import ProfileBase
+
 
 class CheckBase(ABC):
     """Abstract base class for Argo checks."""
@@ -12,7 +14,7 @@ class CheckBase(ABC):
     argo_test_id: int
     argo_test_name: str
 
-    def __init__(self, profile: Dataset, profile_previous: Optional[Dataset]) -> None:
+    def __init__(self, profile: ProfileBase, profile_previous: Optional[ProfileBase]) -> None:
         """Initialise the test with the relevant profile and its precursor.
 
         Args:

@@ -71,7 +71,7 @@ class CheckOutput:
         self._profile: ProfileBase = profile
         self._output: Dict[str, ma.MaskedArray] = {}
 
-    def ensure_output_for_property(self, property_name: str):
+    def ensure_output_for_property(self, property_name: str) -> None:
         """Create an output flag array if it does not exist."""
         if property_name not in self._output:
             self._output[property_name] = ma.empty_like(self._profile.get_property_data(property_name), dtype="|S2")
@@ -90,7 +90,7 @@ class CheckOutput:
         for overridable_flag in FLAG_PRECEDENCE[flag]:
             flags[flags == overridable_flag.value] = flag.value
 
-    def get_output_flags_for_property(self, property_name: str):
+    def get_output_flags_for_property(self, property_name: str) -> ma.MaskedArray:
         """Return the array of flags for the given property."""
         return self._output[property_name]
 

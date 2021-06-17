@@ -16,13 +16,13 @@ class ProfileBase(ABC):
     }
 
     @classmethod
-    def raise_if_not_valid_property(cls, property_name):
+    def raise_if_not_valid_property(cls, property_name: str) -> None:
         """Check that a given property name is valid."""
         if property_name not in cls.valid_properties:
             raise KeyError(f"{property_name}: not a valid property for Profile.")
 
     @abstractmethod
-    def get_property_data(self, property_name) -> ma.MaskedArray:
+    def get_property_data(self, property_name: str) -> ma.MaskedArray:
         """Return the array of property data from the profile."""
 
 
@@ -33,7 +33,7 @@ class Profile(ProfileBase):
         """Initialise a profile based on a dataset."""
         self._dataset = dataset
 
-    def get_property_data(self, property_name) -> ma.MaskedArray:
+    def get_property_data(self, property_name: str) -> ma.MaskedArray:
         """Return the array of property data from the profile."""
         self.raise_if_not_valid_property(property_name)
         return self._dataset[property_name][:]

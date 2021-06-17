@@ -154,6 +154,7 @@ class PressureIncreasingCheck(CheckBase):
         output = CheckOutput(profile=self._profile)
         output.ensure_output_for_properties(["PRES", "TEMP", "PSAL"])
 
+        # do the first pass checking that every value is increasing
         diff = np.diff(pressure, prepend=-np.inf)  # ensures the first measurement always passes
         non_monotonic_elements = diff < 0.0
 
@@ -162,5 +163,15 @@ class PressureIncreasingCheck(CheckBase):
             ArgoQcFlag.BAD,
             where=non_monotonic_elements,
         )
+
+        # do the second pass finding consecutive constant values
+        constants = diff == 0.0
+        output.set_output_flag_for_properties(
+            ["PRES", "TEMP", "PSAL"],
+            ArgoQcFlag.BAD,
+            where=constants,
+        )
+
+        # do the third pass finding any sections where it has been non-montonic and is still below the last good value
 
         return output

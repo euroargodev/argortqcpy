@@ -133,3 +133,27 @@ def test_pressure_increasing_check_some_bad(mocker, pressure_values, expected):
     output = pic.run()
 
     assert np.all(output.get_output_flags_for_property("PRES").data == expected)
+
+
+@pytest.mark.parametrize(
+    "pressure_values,expected",
+    (
+        (
+            [0]*4,
+            [ArgoQcFlag.NO_QC.value, ArgoQcFlag.BAD.value, ArgoQcFlag.BAD.value, ArgoQcFlag.BAD.value],
+        ),
+        (
+            [0, 1, 1, 2],
+            [ArgoQcFlag.NO_QC.value, ArgoQcFlag.NO_QC.value, ArgoQcFlag.BAD.value, ArgoQcFlag.NO_QC.value],
+        ),
+    ),
+)
+def test_pressure_increasing_check_some_constants(mocker, pressure_values, expected):
+    """Test that the pressure increasing works when some values are constant."""
+    profile = mocker.patch.object(argortqcpy.profile, "Profile")
+    profile.get_property_data = mocker.Mock(return_value=ma.masked_array(pressure_values))
+
+    pic = PressureIncreasingCheck(profile, None)
+    output = pic.run()
+
+    assert np.all(output.get_output_flags_for_property("PRES").data == expected)

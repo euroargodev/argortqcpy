@@ -57,7 +57,7 @@ def test_output_set_output_flag_for_property_where(profile_from_dataset):
         (ArgoQcFlag.GOOD, ArgoQcFlag.BAD),
         (ArgoQcFlag.GOOD, ArgoQcFlag.PROBABLY_GOOD),
         (ArgoQcFlag.PROBABLY_BAD, ArgoQcFlag.BAD),
-    )
+    ),
 )
 def test_output_set_output_flag_for_property_with_precendence(profile_from_dataset, lower, higher):
     """Test setting a flag for a given property for a limited set of indices."""

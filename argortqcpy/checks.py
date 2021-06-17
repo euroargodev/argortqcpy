@@ -4,7 +4,6 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Dict, Optional, Set
 
-from netCDF4 import Dataset
 import numpy as np
 from numpy import ma
 
@@ -27,7 +26,7 @@ class ArgoQcFlag(Enum):
     FILL_VALUE = b""
 
 
-FLAG_PRECEDENCE: Dict[ArgoQcFlag, Set] = {
+FLAG_PRECEDENCE: Dict[ArgoQcFlag, Set[ArgoQcFlag]] = {
     ArgoQcFlag.NO_QC: set(),
     ArgoQcFlag.GOOD: {
         ArgoQcFlag.NO_QC,
@@ -72,7 +71,7 @@ class CheckOutput:
         self._profile: ProfileBase = profile
         self._output: Dict[str, ma.MaskedArray] = {}
 
-    def ensure_output_for_property(self, property_name):
+    def ensure_output_for_property(self, property_name: str):
         """Create an output flag array if it does not exist."""
         if property_name not in self._output:
             self._output[property_name] = ma.empty_like(self._profile.get_property_data(property_name), dtype="|S2")
@@ -114,10 +113,10 @@ class CheckBase(ABC):
         self._profile_previous = profile_previous
 
     @abstractmethod
-    def run(self) -> Dataset:
+    def run(self) -> CheckOutput:
         """Run the check.
 
-        Return: a Dataset of checked columns with given flags
+        Return: a CheckOutput instance with checked properties flagged.
         """
 
     def is_required(self) -> bool:  # pylint: disable=no-self-use

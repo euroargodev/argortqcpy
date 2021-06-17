@@ -85,10 +85,12 @@ class CheckOutput:
     ) -> None:
         """Set a flag for a given property (possibly only on some values) accounting for flag precedence."""
         self.ensure_output_for_property(property_name)
-        where = where or slice(None)
+        where = slice(None) if where is None else where
         flags = self._output[property_name][where]
         for overridable_flag in FLAG_PRECEDENCE[flag]:
             flags[flags == overridable_flag.value] = flag.value
+
+        self._output[property_name][where] = flags
 
     def get_output_flags_for_property(self, property_name: str) -> ma.MaskedArray:
         """Return the array of flags for the given property."""

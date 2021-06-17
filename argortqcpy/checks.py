@@ -124,3 +124,23 @@ class CheckBase(ABC):
     def is_required(self) -> bool:  # pylint: disable=no-self-use
         """Is the check required to run or not."""
         return True
+
+
+class PressureIncreasingCheck(CheckBase):
+    """Check for monotonically increasing pressure in a profile."""
+
+    argo_test_id = 8
+    argo_test_name = "Pressure increasing test"
+
+    def run(self) -> CheckOutput:
+        """Check a profile for monotonically increasing pressure."""
+        pressure = self._profile.get_property_data("PRES")
+
+        diff = np.diff(pressure, prepend=-np.inf)  # ensures the first measurement always passes
+        non_monotonic_elements = diff < 0.0
+
+        output = CheckOutput(profile=self._profile)
+        output.ensure_output_for_property("PRES")
+        output.set_output_flag_for_property("PRES", ArgoQcFlag.BAD, where=non_monotonic_elements)
+
+        return output

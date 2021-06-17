@@ -1,0 +1,7 @@
+# define the environment for the binder installation
+dependencies:
+  # pin python version to project requirement
+  - python=3.6
+  - pip
+  - pip:
+    - .  # install argortqcpy package

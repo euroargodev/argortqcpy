@@ -32,3 +32,6 @@ venv/
 
 # netCDF files
 *.nc
+
+# notebooks
+.ipynb_checkpoints/

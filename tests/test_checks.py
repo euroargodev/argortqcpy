@@ -139,7 +139,7 @@ def test_pressure_increasing_check_some_bad(mocker, pressure_values, expected):
     "pressure_values,expected",
     (
         (
-            [0]*4,
+            [0] * 4,
             [ArgoQcFlag.NO_QC.value, ArgoQcFlag.BAD.value, ArgoQcFlag.BAD.value, ArgoQcFlag.BAD.value],
         ),
         (

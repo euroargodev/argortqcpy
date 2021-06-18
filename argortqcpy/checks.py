@@ -173,7 +173,7 @@ class PressureIncreasingCheck(CheckBase):
         )
 
         # do the third pass finding any sections where it has been non-montonic and is still below the last good value
-        running_maximum = np.maximum.accumulate(pressure)  # this is a running maximum, so constant parts mean bad values
+        running_maximum = np.maximum.accumulate(pressure)  # this is a running maximum, constant parts mean bad values
         running_maximum_constant = np.diff(running_maximum, prepend=-np.inf) == 0.0
         output.set_output_flag_for_properties(
             ["PRES", "TEMP", "PSAL"],

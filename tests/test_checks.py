@@ -51,6 +51,25 @@ def test_output_set_output_flag_for_property_where(profile_from_dataset):
     assert np.all(flags[2:] == ArgoQcFlag.NO_QC.value)
 
 
+def test_output_set_output_flag_for_property_where_array(profile_from_dataset):
+    """Test setting a flag for a given property for indices limited by array."""
+    output = CheckOutput(profile=profile_from_dataset)
+
+    where = np.full_like(profile_from_dataset.get_property_data("PRES"), False, dtype=bool)
+    where[0] = True
+    where[-1] = True
+
+    output.ensure_output_for_property("PRES")
+    output.set_output_flag_for_property("PRES", ArgoQcFlag.GOOD, where=where)
+    flags = output.get_output_flags_for_property("PRES")
+
+    assert flags is not None
+    assert isinstance(flags, ma.MaskedArray)
+    assert np.all(flags[0] == ArgoQcFlag.GOOD.value)
+    assert np.all(flags[1:-1] == ArgoQcFlag.NO_QC.value)
+    assert np.all(flags[-1] == ArgoQcFlag.GOOD.value)
+
+
 @pytest.mark.parametrize(
     "lower,higher",
     (

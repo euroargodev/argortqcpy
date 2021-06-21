@@ -183,3 +183,85 @@ class PressureIncreasingCheck(CheckBase):
         )
 
         return output
+
+
+class PropertyRangeCheck(CheckBase):
+    """A class which provides generalised range checking functionality."""
+
+    def set_output_flags_for_value_outside_range(  # pylint: disable=too-many-arguments
+        self,
+        output: CheckOutput,
+        property_name: str,
+        flag: ArgoQcFlag,
+        lower_limit: float = -np.inf,
+        upper_limit: float = np.inf,
+        properties_to_be_flagged: Optional[List[str]] = None,
+    ) -> None:
+        """Set the output flags based on whether a value is outside a range (inclusive of bounds).
+
+        The flags are set either for the property given, or for a given list of properties.
+
+        Args:
+            output: An CheckOutput object to hold output flags.
+            property_name: The property to check for out-of-range values.
+            flag: The flag to be assigned for out-of-range values.
+            lower_limit: Optional lower limit of range, defaults to negative infinity.
+                Values less than this will be flagged.
+            upper_limit: Optional upper limit of range, defaults to positive infinity.
+                Values greater than this will be flagged.
+            properties_to_be_flagged: Optional list of properties to be flagged.
+                Defaults to the property specified to be checked.
+        """
+        properties_to_be_flagged = properties_to_be_flagged or [property_name]
+        property_values = self._profile.get_property_data(property_name)
+
+        # boolean array where values are above *or* below the specified limits
+        bad_values = (property_values < lower_limit) | (property_values > upper_limit)
+
+        output.ensure_output_for_properties(properties_to_be_flagged)
+        output.set_output_flag_for_properties(properties_to_be_flagged, flag, where=bad_values)
+
+
+class GlobalRangeCheck(PropertyRangeCheck):
+    """Check the pressure, temperature, and salinity meet global range requirements."""
+
+    argo_test_id = 6
+    argo_test_name = "Global range test"
+
+    def run(self) -> CheckOutput:
+        """Check a profile for correct value limits."""
+        output = CheckOutput(profile=self._profile)
+
+        self.set_output_flags_for_value_outside_range(
+            output,
+            "PRES",
+            ArgoQcFlag.BAD,
+            lower_limit=-5.0,
+            properties_to_be_flagged=["PRES", "TEMP", "PSAL"],
+        )
+
+        self.set_output_flags_for_value_outside_range(
+            output,
+            "PRES",
+            ArgoQcFlag.PROBABLY_BAD,
+            lower_limit=-2.4,
+            properties_to_be_flagged=["PRES", "TEMP", "PSAL"],
+        )
+
+        self.set_output_flags_for_value_outside_range(
+            output,
+            "TEMP",
+            ArgoQcFlag.BAD,
+            lower_limit=-2.5,
+            upper_limit=40.0,
+        )
+
+        self.set_output_flags_for_value_outside_range(
+            output,
+            "PSAL",
+            ArgoQcFlag.BAD,
+            lower_limit=2.0,
+            upper_limit=41.0,
+        )
+
+        return output

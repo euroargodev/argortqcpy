@@ -4,7 +4,8 @@ import numpy as np
 from numpy import ma
 import pytest
 
-from argortqcpy.checks import ArgoQcFlag, CheckOutput
+import argortqcpy.profile
+from argortqcpy.checks import ArgoQcFlag, CheckOutput, PressureIncreasingCheck
 
 
 def test_check_is_required(fake_check):
@@ -93,3 +94,104 @@ def test_output_set_output_flag_for_property_with_precendence(profile_from_datas
     assert np.all(flags[:1] == higher.value)
     assert np.all(flags[1:2] == lower.value)
     assert np.all(flags[2:] == ArgoQcFlag.NO_QC.value)
+
+
+@pytest.mark.parametrize(
+    "pressure_values",
+    (
+        range(10),
+        [1, 3, 5, 10, 100],
+        [0, 2, 2.5, 6.85],
+    ),
+)
+def test_pressure_increasing_check_all_pass(mocker, pressure_values):
+    """Test that the pressure increasing test succeeds."""
+    profile = mocker.patch.object(argortqcpy.profile, "Profile")
+    profile.get_property_data = mocker.Mock(return_value=ma.masked_array(pressure_values))
+
+    pic = PressureIncreasingCheck(profile, None)
+    output = pic.run()
+
+    assert np.all(output.get_output_flags_for_property("PRES").data == ArgoQcFlag.NO_QC.value)
+
+
+@pytest.mark.parametrize(
+    "pressure_values,expected",
+    (
+        (
+            [0, 2, 1, 5],
+            [ArgoQcFlag.NO_QC.value, ArgoQcFlag.NO_QC.value, ArgoQcFlag.BAD.value, ArgoQcFlag.NO_QC.value],
+        ),
+    ),
+)
+def test_pressure_increasing_check_some_bad(mocker, pressure_values, expected):
+    """Test that the pressure increasing works when some values are bad."""
+    profile = mocker.patch.object(argortqcpy.profile, "Profile")
+    profile.get_property_data = mocker.Mock(return_value=ma.masked_array(pressure_values))
+
+    pic = PressureIncreasingCheck(profile, None)
+    output = pic.run()
+
+    assert np.all(output.get_output_flags_for_property("PRES").data == expected)
+
+
+@pytest.mark.parametrize(
+    "pressure_values,expected",
+    (
+        (
+            [0] * 4,
+            [ArgoQcFlag.NO_QC.value, ArgoQcFlag.BAD.value, ArgoQcFlag.BAD.value, ArgoQcFlag.BAD.value],
+        ),
+        (
+            [0, 1, 1, 2],
+            [ArgoQcFlag.NO_QC.value, ArgoQcFlag.NO_QC.value, ArgoQcFlag.BAD.value, ArgoQcFlag.NO_QC.value],
+        ),
+    ),
+)
+def test_pressure_increasing_check_some_constants(mocker, pressure_values, expected):
+    """Test that the pressure increasing works when some values are constant."""
+    profile = mocker.patch.object(argortqcpy.profile, "Profile")
+    profile.get_property_data = mocker.Mock(return_value=ma.masked_array(pressure_values))
+
+    pic = PressureIncreasingCheck(profile, None)
+    output = pic.run()
+
+    assert np.all(output.get_output_flags_for_property("PRES").data == expected)
+
+
+@pytest.mark.parametrize(
+    "pressure_values,expected",
+    (
+        (
+            [0, 1, 2, 1, 1.5, 3, 5],
+            [
+                ArgoQcFlag.NO_QC.value,
+                ArgoQcFlag.NO_QC.value,
+                ArgoQcFlag.NO_QC.value,
+                ArgoQcFlag.BAD.value,
+                ArgoQcFlag.BAD.value,
+                ArgoQcFlag.NO_QC.value,
+                ArgoQcFlag.NO_QC.value,
+            ],
+        ),
+        (
+            [
+                [0, 1, 2, 3],
+                [0, 1, 0, 1],
+            ],
+            [
+                [ArgoQcFlag.NO_QC.value, ArgoQcFlag.NO_QC.value, ArgoQcFlag.NO_QC.value, ArgoQcFlag.NO_QC.value],
+                [ArgoQcFlag.NO_QC.value, ArgoQcFlag.NO_QC.value, ArgoQcFlag.BAD.value, ArgoQcFlag.BAD.value],
+            ],
+        ),
+    ),
+)
+def test_pressure_increasing_check_some_decreasing(mocker, pressure_values, expected):
+    """Test that the pressure increasing works when some values are decreasing."""
+    profile = mocker.patch.object(argortqcpy.profile, "Profile")
+    profile.get_property_data = mocker.Mock(return_value=ma.masked_array(pressure_values))
+
+    pic = PressureIncreasingCheck(profile, None)
+    output = pic.run()
+
+    assert np.all(output.get_output_flags_for_property("PRES").data == expected)

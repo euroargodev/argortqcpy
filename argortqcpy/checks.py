@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Dict, Optional, Set
+from typing import Dict, List, Optional, Set
 
 import numpy as np
 from numpy import ma
@@ -77,6 +77,11 @@ class CheckOutput:
             self._output[property_name] = ma.empty_like(self._profile.get_property_data(property_name), dtype="|S2")
             self._output[property_name][:] = ArgoQcFlag.NO_QC.value
 
+    def ensure_output_for_properties(self, property_names: List[str]) -> None:
+        """Create an output flag array if it does not exist for each property."""
+        for property_name in property_names:
+            self.ensure_output_for_property(property_name)
+
     def set_output_flag_for_property(
         self,
         property_name: str,
@@ -91,6 +96,16 @@ class CheckOutput:
             flags[flags == overridable_flag.value] = flag.value
 
         self._output[property_name][where] = flags
+
+    def set_output_flag_for_properties(
+        self,
+        property_names: List[str],
+        flag: ArgoQcFlag,
+        where: Optional[np.ndarray] = None,
+    ) -> None:
+        """Set the same flags for multiple properties."""
+        for property_name in property_names:
+            self.set_output_flag_for_property(property_name, flag, where=where)
 
     def get_output_flags_for_property(self, property_name: str) -> ma.MaskedArray:
         """Return the array of flags for the given property."""
@@ -124,3 +139,47 @@ class CheckBase(ABC):
     def is_required(self) -> bool:  # pylint: disable=no-self-use
         """Is the check required to run or not."""
         return True
+
+
+class PressureIncreasingCheck(CheckBase):
+    """Check for monotonically increasing pressure in a profile."""
+
+    argo_test_id = 8
+    argo_test_name = "Pressure increasing test"
+
+    def run(self) -> CheckOutput:
+        """Check a profile for monotonically increasing pressure."""
+        pressure = self._profile.get_property_data("PRES")
+
+        output = CheckOutput(profile=self._profile)
+        output.ensure_output_for_properties(["PRES", "TEMP", "PSAL"])
+
+        # do the first pass checking that every value is increasing
+        diff = np.diff(pressure, prepend=-np.inf)  # ensures the first measurement always passes
+        non_monotonic_elements = diff < 0.0
+
+        output.set_output_flag_for_properties(
+            ["PRES", "TEMP", "PSAL"],
+            ArgoQcFlag.BAD,
+            where=non_monotonic_elements,
+        )
+
+        # do the second pass finding consecutive constant values
+        constant = diff == 0.0
+        output.set_output_flag_for_properties(
+            ["PRES", "TEMP", "PSAL"],
+            ArgoQcFlag.BAD,
+            where=constant,
+        )
+
+        # do the third pass finding any sections where it has been non-montonic and is still below the last good value
+        # this is a running maximum, constant parts mean bad values
+        running_maximum = np.maximum.accumulate(pressure, axis=-1)
+        running_maximum_constant = np.diff(running_maximum, prepend=-np.inf) == 0.0
+        output.set_output_flag_for_properties(
+            ["PRES", "TEMP", "PSAL"],
+            ArgoQcFlag.BAD,
+            where=running_maximum_constant,
+        )
+
+        return output

@@ -22,7 +22,7 @@ def test_output_ensure_output_for_property(profile_from_dataset):
 
     assert flags is not None
     assert isinstance(flags, ma.MaskedArray)
-    assert np.all(flags == ArgoQcFlag.NO_QC.value)
+    assert np.all(flags == ArgoQcFlag.GOOD.value)
 
 
 def test_output_set_output_flag_for_property(profile_from_dataset):
@@ -43,13 +43,13 @@ def test_output_set_output_flag_for_property_where(profile_from_dataset):
     output = CheckOutput(profile=profile_from_dataset)
 
     output.ensure_output_for_property("PRES")
-    output.set_output_flag_for_property("PRES", ArgoQcFlag.GOOD, where=slice(None, 2))
+    output.set_output_flag_for_property("PRES", ArgoQcFlag.PROBABLY_GOOD, where=slice(None, 2))
     flags = output.get_output_flags_for_property("PRES")
 
     assert flags is not None
     assert isinstance(flags, ma.MaskedArray)
-    assert np.all(flags[:2] == ArgoQcFlag.GOOD.value)
-    assert np.all(flags[2:] == ArgoQcFlag.NO_QC.value)
+    assert np.all(flags[:2] == ArgoQcFlag.PROBABLY_GOOD.value)
+    assert np.all(flags[2:] == ArgoQcFlag.GOOD.value)
 
 
 def test_output_set_output_flag_for_property_where_array(profile_from_dataset):
@@ -61,21 +61,21 @@ def test_output_set_output_flag_for_property_where_array(profile_from_dataset):
     where[-1] = True
 
     output.ensure_output_for_property("PRES")
-    output.set_output_flag_for_property("PRES", ArgoQcFlag.GOOD, where=where)
+    output.set_output_flag_for_property("PRES", ArgoQcFlag.PROBABLY_GOOD, where=where)
     flags = output.get_output_flags_for_property("PRES")
 
     assert flags is not None
     assert isinstance(flags, ma.MaskedArray)
-    assert np.all(flags[0] == ArgoQcFlag.GOOD.value)
-    assert np.all(flags[1:-1] == ArgoQcFlag.NO_QC.value)
-    assert np.all(flags[-1] == ArgoQcFlag.GOOD.value)
+    assert np.all(flags[0] == ArgoQcFlag.PROBABLY_GOOD.value)
+    assert np.all(flags[1:-1] == ArgoQcFlag.GOOD.value)
+    assert np.all(flags[-1] == ArgoQcFlag.PROBABLY_GOOD.value)
 
 
 @pytest.mark.parametrize(
     "lower,higher",
     (
-        (ArgoQcFlag.GOOD, ArgoQcFlag.BAD),
-        (ArgoQcFlag.GOOD, ArgoQcFlag.PROBABLY_GOOD),
+        (ArgoQcFlag.PROBABLY_GOOD, ArgoQcFlag.BAD),
+        (ArgoQcFlag.PROBABLY_GOOD, ArgoQcFlag.PROBABLY_BAD),
         (ArgoQcFlag.PROBABLY_BAD, ArgoQcFlag.BAD),
     ),
 )
@@ -93,7 +93,7 @@ def test_output_set_output_flag_for_property_with_precendence(profile_from_datas
     assert isinstance(flags, ma.MaskedArray)
     assert np.all(flags[:1] == higher.value)
     assert np.all(flags[1:2] == lower.value)
-    assert np.all(flags[2:] == ArgoQcFlag.NO_QC.value)
+    assert np.all(flags[2:] == ArgoQcFlag.GOOD.value)
 
 
 @pytest.mark.parametrize(
@@ -112,7 +112,7 @@ def test_pressure_increasing_check_all_pass(mocker, pressure_values):
     pic = PressureIncreasingCheck(profile, None)
     output = pic.run()
 
-    assert np.all(output.get_output_flags_for_property("PRES").data == ArgoQcFlag.NO_QC.value)
+    assert np.all(output.get_output_flags_for_property("PRES").data == ArgoQcFlag.GOOD.value)
 
 
 @pytest.mark.parametrize(
@@ -120,7 +120,7 @@ def test_pressure_increasing_check_all_pass(mocker, pressure_values):
     (
         (
             [0, 2, 1, 5],
-            [ArgoQcFlag.NO_QC.value, ArgoQcFlag.NO_QC.value, ArgoQcFlag.BAD.value, ArgoQcFlag.NO_QC.value],
+            [ArgoQcFlag.GOOD.value, ArgoQcFlag.GOOD.value, ArgoQcFlag.BAD.value, ArgoQcFlag.GOOD.value],
         ),
     ),
 )
@@ -140,11 +140,11 @@ def test_pressure_increasing_check_some_bad(mocker, pressure_values, expected):
     (
         (
             [0] * 4,
-            [ArgoQcFlag.NO_QC.value, ArgoQcFlag.BAD.value, ArgoQcFlag.BAD.value, ArgoQcFlag.BAD.value],
+            [ArgoQcFlag.GOOD.value, ArgoQcFlag.BAD.value, ArgoQcFlag.BAD.value, ArgoQcFlag.BAD.value],
         ),
         (
             [0, 1, 1, 2],
-            [ArgoQcFlag.NO_QC.value, ArgoQcFlag.NO_QC.value, ArgoQcFlag.BAD.value, ArgoQcFlag.NO_QC.value],
+            [ArgoQcFlag.GOOD.value, ArgoQcFlag.GOOD.value, ArgoQcFlag.BAD.value, ArgoQcFlag.GOOD.value],
         ),
     ),
 )
@@ -165,13 +165,13 @@ def test_pressure_increasing_check_some_constants(mocker, pressure_values, expec
         (
             [0, 1, 2, 1, 1.5, 3, 5],
             [
-                ArgoQcFlag.NO_QC.value,
-                ArgoQcFlag.NO_QC.value,
-                ArgoQcFlag.NO_QC.value,
+                ArgoQcFlag.GOOD.value,
+                ArgoQcFlag.GOOD.value,
+                ArgoQcFlag.GOOD.value,
                 ArgoQcFlag.BAD.value,
                 ArgoQcFlag.BAD.value,
-                ArgoQcFlag.NO_QC.value,
-                ArgoQcFlag.NO_QC.value,
+                ArgoQcFlag.GOOD.value,
+                ArgoQcFlag.GOOD.value,
             ],
         ),
         (
@@ -180,8 +180,8 @@ def test_pressure_increasing_check_some_constants(mocker, pressure_values, expec
                 [0, 1, 0, 1],
             ],
             [
-                [ArgoQcFlag.NO_QC.value, ArgoQcFlag.NO_QC.value, ArgoQcFlag.NO_QC.value, ArgoQcFlag.NO_QC.value],
-                [ArgoQcFlag.NO_QC.value, ArgoQcFlag.NO_QC.value, ArgoQcFlag.BAD.value, ArgoQcFlag.BAD.value],
+                [ArgoQcFlag.GOOD.value, ArgoQcFlag.GOOD.value, ArgoQcFlag.GOOD.value, ArgoQcFlag.GOOD.value],
+                [ArgoQcFlag.GOOD.value, ArgoQcFlag.GOOD.value, ArgoQcFlag.BAD.value, ArgoQcFlag.BAD.value],
             ],
         ),
     ),

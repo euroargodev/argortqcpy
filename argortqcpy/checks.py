@@ -115,8 +115,10 @@ class CheckOutput:
 class CheckBase(ABC):
     """Abstract base class for Argo checks."""
 
-    argo_test_id: int
-    argo_test_name: str
+    argo_id: int
+    argo_binary_id: int
+    argo_name: str
+    nvs_uri: str
 
     def __init__(self, profile: ProfileBase, profile_previous: Optional[ProfileBase]) -> None:
         """Initialise the test with the relevant profile and its precursor.
@@ -144,8 +146,10 @@ class CheckBase(ABC):
 class PressureIncreasingCheck(CheckBase):
     """Check for monotonically increasing pressure in a profile."""
 
-    argo_test_id = 8
-    argo_test_name = "Pressure increasing test"
+    argo_id = 8
+    argo_binary_id = 256
+    argo_name = "Pressure increasing test"
+    nvs_uri = "http://vocab.nerc.ac.uk/collection/R11/current/8/"
 
     def run(self) -> CheckOutput:
         """Check a profile for monotonically increasing pressure."""
@@ -225,8 +229,10 @@ class PropertyRangeCheck(CheckBase):
 class GlobalRangeCheck(PropertyRangeCheck):
     """Check the pressure, temperature, and salinity meet global range requirements."""
 
-    argo_test_id = 6
-    argo_test_name = "Global range test"
+    argo_id = 6
+    argo_binary_id = 64
+    argo_name = "Global range test"
+    nvs_uri = "http://vocab.nerc.ac.uk/collection/R11/current/6/"
 
     def run(self) -> CheckOutput:
         """Check a profile for correct value limits."""

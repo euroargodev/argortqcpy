@@ -5,7 +5,8 @@ from numpy import ma
 import pytest
 
 import argortqcpy.profile
-from argortqcpy.checks import ArgoQcFlag, PropertyRangeCheck
+import argortqcpy.checks
+from argortqcpy.checks import ArgoQcFlag, GlobalRangeCheck, PropertyRangeCheck
 
 
 class FakePropertyRangeCheck(PropertyRangeCheck):
@@ -49,3 +50,36 @@ def test_property_range_check(mocker, lower, upper, expected):
     kwargs = output.set_output_flag_for_properties.call_args[1]
     assert "where" in kwargs
     np.testing.assert_equal(kwargs["where"], ma.masked_array(expected))
+
+
+def test_global_range_check(mocker):
+    """Test that the global range check calls the correct functions."""
+    profile = mocker.patch.object(argortqcpy.profile, "Profile")
+    output_instance = mocker.Mock()
+    mocker.patch.object(argortqcpy.checks, "CheckOutput", return_value=output_instance)
+    grc = GlobalRangeCheck(profile, None)
+    grc.set_output_flags_for_value_outside_range = mocker.Mock()
+
+    grc.run()
+
+    assert grc.set_output_flags_for_value_outside_range.call_count == 4
+    grc.set_output_flags_for_value_outside_range.assert_has_calls(
+        [
+            mocker.call(
+                output_instance,
+                "PRES",
+                ArgoQcFlag.BAD,
+                lower_limit=-5.0,
+                properties_to_be_flagged=["PRES", "TEMP", "PSAL"],
+            ),
+            mocker.call(
+                output_instance,
+                "PRES",
+                ArgoQcFlag.PROBABLY_BAD,
+                lower_limit=-2.4,
+                properties_to_be_flagged=["PRES", "TEMP", "PSAL"],
+            ),
+            mocker.call(output_instance, "TEMP", ArgoQcFlag.BAD, lower_limit=-2.5, upper_limit=40.0),
+            mocker.call(output_instance, "PSAL", ArgoQcFlag.BAD, lower_limit=2.0, upper_limit=41.0),
+        ]
+    )

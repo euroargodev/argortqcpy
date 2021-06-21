@@ -174,6 +174,16 @@ def test_pressure_increasing_check_some_constants(mocker, pressure_values, expec
                 ArgoQcFlag.NO_QC.value,
             ],
         ),
+        (
+            [
+                [0, 1, 2, 3],
+                [0, 1, 0, 1],
+            ],
+            [
+                [ArgoQcFlag.NO_QC.value, ArgoQcFlag.NO_QC.value, ArgoQcFlag.NO_QC.value, ArgoQcFlag.NO_QC.value],
+                [ArgoQcFlag.NO_QC.value, ArgoQcFlag.NO_QC.value, ArgoQcFlag.BAD.value, ArgoQcFlag.BAD.value],
+            ],
+        ),
     ),
 )
 def test_pressure_increasing_check_some_decreasing(mocker, pressure_values, expected):
